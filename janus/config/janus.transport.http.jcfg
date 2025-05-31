@@ -1,0 +1,11 @@
+general: {
+        json = "indented"
+        base_path = "/janus"
+        http = true
+        port = 8088
+        https = false
+        cors = true
+        cors_origin = "*"
+        cors_headers = "content-type, x-janus-session-id, x-janus-handle-id, x-janus-token"
+        acl = ["127.0.0.1", "localhost"]
+}

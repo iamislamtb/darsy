@@ -1,0 +1,20 @@
+services:
+  janus:
+    image: canyan/janus-gateway:latest
+    ports:
+      - "8088:8088"  # REST API HTTP
+      - "8088-8089:8088-8089/tcp"
+      - "8000-8001:8000-8001/udp"
+      - "10000-10200:10000-10200/udp"
+      - "8188:8188/tcp"  # RTP/RTCP port range
+    volumes:
+      - ./config:/usr/local/etc/janus
+    environment:
+      - JANUS_LOG_LEVEL=7
+      - JANUS_NICE_DEBUG=1
+      - JANUS_FULL_TRICKLE=1
+      - JANUS_ICE_LITE=0
+      - JANUS_ICE_TCP=1
+      - JANUS_IPV6=0
+      - JANUS_MIN_NACK_QUEUE=500
+    restart: unless-stopped
