@@ -34,7 +34,6 @@ An advanced e-learning platform with real-time video communication capabilities 
    python -m venv venv
    source venv/bin/activate
    pip install -r requirements.txt
-   python manage.py migrate
    ```
 
 3. Set up the frontend:
