@@ -1,6 +1,0 @@
-# Echotest plugin configuration
-general: {
-    # By default, integers are used as a unique ID for echo test peers;
-    # strings can be used instead, if set to true
-    string_ids = true
-}

@@ -1,9 +1,0 @@
-general: {
-        json = "indented"
-        ws = true
-        ws_port = 8089
-        ws_interface = "0.0.0.0"
-        wss = false
-        ws_logging = true
-        ws_acl = ["127.0.0.1", "localhost"]
-}
