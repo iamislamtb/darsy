@@ -18,16 +18,6 @@ An advanced e-learning platform with real-time video communication capabilities 
   - TailwindCSS
   - Redux Toolkit
 
-## Project Structure
-
-```
-darsy/
-├── backend/              # Django backend
-├── frontend/             # React frontend
-├── janus-config/         # Janus Gateway configuration
-└── docker/              # Docker configuration files
-```
-
 ## Prerequisites
 
 - Python 3.9+
