@@ -23,12 +23,12 @@ function Certificates() {
   ];
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-semibold text-gray-900 mb-6">My Certificates</h1>
+    <div className="p-4 sm:p-6">
+      <h1 className="text-2xl font-semibold text-white mb-6">My Certificates</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {certificates.map((cert) => (
-          <div key={cert.id} className="bg-white rounded-lg shadow overflow-hidden">
+          <div key={cert.id} className="bg-gray-800 rounded-lg shadow-lg border border-gray-700 overflow-hidden hover:shadow-xl hover:shadow-primary-500/10 transition-all duration-200">
             <div className="relative">
               <img
                 src={cert.thumbnail}
@@ -36,34 +36,34 @@ function Certificates() {
                 className="w-full h-48 object-cover"
                 onError={(e) => {
                   e.target.onerror = null;
-                  e.target.src = `https://placehold.co/600x400/4f46e5/ffffff?text=${encodeURIComponent(cert.course)}`;
+                  e.target.src = `https://placehold.co/600x400/4f46e5/1e1b4b?text=${encodeURIComponent(cert.course)}`;
                 }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex items-end">
-                <div className="p-4 text-white">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex items-end">
+                <div className="p-4 text-white w-full">
                   <h3 className="text-lg font-semibold">{cert.course}</h3>
-                  <p className="text-sm opacity-90">Instructor: {cert.instructor}</p>
+                  <p className="text-sm text-gray-300">Instructor: {cert.instructor}</p>
                 </div>
               </div>
             </div>
             
             <div className="p-4">
-              <div className="space-y-2 mb-4">
+              <div className="space-y-3 mb-4">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Issue Date:</span>
-                  <span className="text-gray-900">{new Date(cert.issueDate).toLocaleDateString()}</span>
+                  <span className="text-gray-400">Issue Date:</span>
+                  <span className="text-gray-200 font-medium">{new Date(cert.issueDate).toLocaleDateString()}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Credential ID:</span>
-                  <span className="text-gray-900">{cert.credential}</span>
+                  <span className="text-gray-400">Credential ID:</span>
+                  <span className="text-gray-200 font-mono text-xs">{cert.credential}</span>
                 </div>
               </div>
 
-              <div className="flex space-x-2">
+              <div className="flex space-x-3">
                 <Button variant="primary" className="flex-1">
                   Download
                 </Button>
-                <Button variant="outline" className="flex-1">
+                <Button variant="outline" className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-700 hover:border-gray-500">
                   Share
                 </Button>
               </div>
@@ -73,14 +73,19 @@ function Certificates() {
       </div>
 
       {certificates.length === 0 && (
-        <div className="text-center py-12">
-          <div className="text-gray-400 mb-4">
-            <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <div className="text-center py-16 px-4 rounded-xl border-2 border-dashed border-gray-700 bg-gray-800/50">
+          <div className="text-gray-500 mb-4">
+            <svg className="mx-auto h-14 w-14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No certificates yet</h3>
-          <p className="text-gray-600">Complete courses to earn certificates</p>
+          <h3 className="text-lg font-medium text-gray-200 mb-2">No certificates yet</h3>
+          <p className="text-gray-400 max-w-md mx-auto">Complete courses to earn certificates that showcase your achievements</p>
+          <div className="mt-6">
+            <Button variant="primary" onClick={() => navigate('/dashboard/courses')}>
+              Browse Courses
+            </Button>
+          </div>
         </div>
       )}
     </div>

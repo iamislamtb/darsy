@@ -1,111 +1,568 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import RoleSelection from '../components/RoleSelection';
-import RegistrationForm from '../components/RegistrationForm';
+import Input from '../components/Input';
+import Button from '../components/Button';
+import { validateEmail, validatePassword } from '../utils/formValidation';
+import { FiArrowRight, FiUser, FiMail, FiLock, FiCheck, FiBook, FiAward } from 'react-icons/fi'; 
+import { FiArrowLeft } from 'react-icons/fi';
 
 function RegisterPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [step, setStep] = useState(1); // 1: Select Role, 2: Registration Form
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [step, setStep] = useState(1);
   const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
-    role: '', // 'student' or 'teacher'
+    role: '',
     rememberMe: false
   });
 
-  const validateForm = () => {
+  // Validate fields when they change and have been touched
+  useEffect(() => {
     const newErrors = {};
-    if (!formData.name) {
+    
+    if (touched.name && !formData.name) {
       newErrors.name = 'Name is required';
     }
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email';
+    
+    if (touched.email) {
+      const emailError = validateEmail(formData.email);
+      if (emailError) newErrors.email = emailError;
     }
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+    
+    if (touched.password) {
+      const passwordError = validatePassword(formData.password);
+      if (passwordError) newErrors.password = passwordError;
     }
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password';
-    } else if (formData.password !== formData.confirmPassword) {
+    
+    if (touched.confirmPassword && formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
+    
+    if (touched.role && !formData.role) {
+      newErrors.role = 'Please select a role';
+    }
+    
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  }, [formData, touched]);
+
+  const validateForm = () => {
+    const newTouched = {};
+    Object.keys(formData).forEach(field => {
+      newTouched[field] = true;
+    });
+    setTouched(newTouched);
+
+    const newErrors = {};
+    
+    if (!formData.name) newErrors.name = 'Name is required';
+    
+    const emailError = validateEmail(formData.email);
+    if (emailError) newErrors.email = emailError;
+    
+    const passwordError = validatePassword(formData.password);
+    if (passwordError) newErrors.password = passwordError;
+    
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+    
+    if (!formData.role) newErrors.role = 'Please select a role';
+    
+    setErrors(newErrors);
+    return newErrors;
   };
+  
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    const newValue = type === 'checkbox' ? checked : value;
+    
+    setFormData(prev => ({
+      ...prev,
+      [name]: newValue
+    }));
+    
+    if (touched[name]) {
+      let error = '';
+      
+      if (name === 'email' && value) {
+        error = validateEmail(value);
+      } else if (name === 'password' && value) {
+        error = validatePassword(value);
+      } else if (name === 'confirmPassword' && value) {
+        error = value === formData.password ? '' : 'Passwords do not match';
+      } else if (name === 'name' && !value) {
+        error = 'Name is required';
+      }
+      
+      if (errors[name] !== error) {
+        setErrors(prev => ({
+          ...prev,
+          [name]: error
+        }));
+      }
+    }
+  };
+
+  const handleBlur = (e) => {
+    const { name } = e.target;
+    setTouched(prev => ({ ...prev, [name]: true }));
+  };
+  
+  const handleRoleSelect = (role) => {
+    setFormData(prev => ({ ...prev, role }));
+    setTouched(prev => ({ ...prev, role: true }));
+  };
+  
+  const nextStep = () => {
+    if (formData.role) {
+      setStep(2);
+    } else {
+      setTouched(prev => ({ ...prev, role: true }));
+    }
+  };
+  
+  const prevStep = () => setStep(1);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
-
-    setIsLoading(true);
+    
+    // Validate form
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+    
     try {
+      setIsLoading(true);
+      setErrors({});
+      
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
 
+      // In a real app, this would be an API call to your backend
       const userData = {
-        id: 1,
+        id: 'user-' + Math.random().toString(36).substr(2, 9),
         name: formData.name,
         email: formData.email,
         role: formData.role,
-        avatar: 'https://via.placeholder.com/128',
+        emailVerified: false,
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=random`
       };
 
-      login(userData, formData.rememberMe);
-      navigate('/dashboard');
+      // Login the user - AuthContext will handle redirection
+      await login(userData, formData.rememberMe);
+      setIsSuccess(true);
     } catch (error) {
-      setErrors({ submit: 'Registration failed. Please try again.' });
+      console.error('Registration error:', error);
+      setErrors({
+        submit: error.message || 'Registration failed. Please try again.'
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleChange = (e) => {
-    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
-    setFormData({
-      ...formData,
-      [e.target.name]: value,
-    });
-    // Clear error when user starts typing
-    if (errors[e.target.name]) {
+  const handleResendVerificationEmail = async () => {
+    try {
+      setIsLoading(true);
+      // Simulate API call to resend verification email
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      // In a real app, you would call your API endpoint here
+      // await api.resendVerificationEmail({ email: formData.email });
+      
+      // Show success message (you can replace this with a toast notification)
       setErrors({
-        ...errors,
-        [e.target.name]: ''
+        submit: 'Verification email resent successfully!'
       });
+    } catch (error) {
+      console.error('Error resending verification email:', error);
+      setErrors({
+        submit: 'Failed to resend verification email. Please try again.'
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleRoleSelect = (selectedRole) => {
-    setFormData(prevData => ({
-      ...prevData,
-      role: selectedRole
-    }));
-    setStep(2);
-  };
+  const renderStepOne = () => (
+    <div className="mt-8 space-y-6">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <button
+          type="button"
+          onClick={() => handleRoleSelect('student')}
+          className={`relative p-6 rounded-xl transition-all duration-200 border-2 ${
+            formData.role === 'student'
+              ? 'border-primary-500 bg-primary-900/20 backdrop-blur-sm'
+              : 'border-gray-700 bg-gray-800/50 hover:border-primary-400/50'
+          }`}
+        >
+          <div className="flex flex-col items-center">
+            <div className={`p-3 mb-3 rounded-full ${
+              formData.role === 'student' 
+                ? 'bg-primary-900/30 text-primary-300' 
+                : 'bg-gray-700/50 text-gray-400'
+            }`}>
+              <FiBook className="h-6 w-6" />
+            </div>
+            <span className="font-medium text-gray-100">Student</span>
+            <p className="mt-1 text-xs text-gray-400 text-center">Join as a learner to access courses</p>
+            {formData.role === 'student' && (
+              <div className="absolute top-3 right-3 h-5 w-5 rounded-full bg-primary-500 flex items-center justify-center">
+                <FiCheck className="h-3.5 w-3.5 text-white" />
+              </div>
+            )}
+          </div>
+        </button>
+        
+        <button
+          type="button"
+          onClick={() => handleRoleSelect('teacher')}
+          className={`relative p-6 rounded-xl transition-all duration-200 border-2 ${
+            formData.role === 'teacher'
+              ? 'border-primary-500 bg-primary-900/20 backdrop-blur-sm'
+              : 'border-gray-700 bg-gray-800/50 hover:border-primary-400/50'
+          }`}
+        >
+          <div className="flex flex-col items-center">
+            <div className={`p-3 mb-3 rounded-full ${
+              formData.role === 'teacher' 
+                ? 'bg-primary-900/30 text-primary-300' 
+                : 'bg-gray-700/50 text-gray-400'
+            }`}>
+              <FiAward className="h-6 w-6" />
+            </div>
+            <span className="font-medium text-gray-100">Teacher</span>
+            <p className="mt-1 text-xs text-gray-400 text-center">Create and share your knowledge</p>
+            {formData.role === 'teacher' && (
+              <div className="absolute top-3 right-3 h-5 w-5 rounded-full bg-primary-500 flex items-center justify-center">
+                <FiCheck className="h-3.5 w-3.5 text-white" />
+              </div>
+            )}
+          </div>
+        </button>
+      </div>
+      
+      {touched.role && errors.role && (
+        <div className="mt-2 p-3 bg-red-900/30 border border-red-700/50 text-red-100 rounded-lg flex items-center space-x-2">
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <span>{errors.role}</span>
+        </div>
+      )}
+      
+      <div className="pt-2">
+        <Button
+          type="button"
+          onClick={nextStep}
+          disabled={!formData.role}
+          className="group w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-lg text-sm font-medium text-white bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span>Continue</span>
+          <FiArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
+        </Button>
+      </div>
+    </div>
+  );
+
+  const renderStepTwo = () => (
+    <form className="mt-8 space-y-6" onSubmit={handleSubmit} noValidate>
+      <div className="space-y-5">
+        {/* Name Field */}
+        <div className="space-y-1">
+          <label htmlFor="name" className="block text-sm font-medium text-gray-300">
+            Full Name
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <FiUser className="h-5 w-5 text-gray-400" />
+            </div>
+            <Input
+              id="name"
+              name="name"
+              type="text"
+              autoComplete="name"
+              placeholder="John Doe"
+              value={formData.name}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              className={`pl-10 w-full bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                touched.name && errors.name ? 'border-red-500' : ''
+              } ${
+                touched.name && formData.name && !errors.name ? 'border-green-500' : ''
+              }`}
+            />
+          </div>
+          {touched.name && errors.name && (
+            <p className="mt-1 text-sm text-red-400">{errors.name}</p>
+          )}
+        </div>
+        
+        {/* Email Field */}
+        <div className="space-y-1">
+          <label htmlFor="email-address" className="block text-sm font-medium text-gray-300">
+            Email address
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <FiMail className="h-5 w-5 text-gray-400" />
+            </div>
+            <Input
+              id="email-address"
+              name="email"
+              type="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              value={formData.email}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              className={`pl-10 w-full bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                touched.email && errors.email ? 'border-red-500' : ''
+              } ${
+                touched.email && formData.email && !errors.email ? 'border-green-500' : ''
+              }`}
+            />
+          </div>
+          {touched.email && errors.email && (
+            <p className="mt-1 text-sm text-red-400">{errors.email}</p>
+          )}
+        </div>
+        
+        {/* Password Field */}
+        <div className="space-y-1">
+          <label htmlFor="password" className="block text-sm font-medium text-gray-300">
+            Password
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <FiLock className="h-5 w-5 text-gray-400" />
+            </div>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="new-password"
+              placeholder="••••••••"
+              value={formData.password}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              className={`pl-10 w-full bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                touched.password && errors.password ? 'border-red-500' : ''
+              } ${
+                touched.password && formData.password && !errors.password ? 'border-green-500' : ''
+              }`}
+            />
+          </div>
+          {touched.password && errors.password && (
+            <p className="mt-1 text-sm text-red-400">{errors.password}</p>
+          )}
+        </div>
+        
+        {/* Confirm Password Field */}
+        <div className="space-y-1">
+          <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-300">
+            Confirm Password
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <FiLock className="h-5 w-5 text-gray-400" />
+            </div>
+            <Input
+              id="confirm-password"
+              name="confirmPassword"
+              type="password"
+              autoComplete="new-password"
+              placeholder="••••••••"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              className={`pl-10 w-full bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                touched.confirmPassword && errors.confirmPassword ? 'border-red-500' : ''
+              } ${
+                touched.confirmPassword && formData.confirmPassword && !errors.confirmPassword ? 'border-green-500' : ''
+              }`}
+            />
+          </div>
+          {touched.confirmPassword && errors.confirmPassword && (
+            <p className="mt-1 text-sm text-red-400">{errors.confirmPassword}</p>
+          )}
+        </div>
+        
+        {/* Remember Me Checkbox */}
+        <div className="flex items-center">
+          <div className="flex items-center">
+            <input
+              id="rememberMe"
+              name="rememberMe"
+              type="checkbox"
+              className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-primary-500 focus:ring-primary-500 focus:ring-offset-gray-900"
+              checked={formData.rememberMe}
+              onChange={handleChange}
+            />
+            <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-300">
+              Remember me
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* Form Actions */}
+      <div className="flex items-center justify-between pt-2">
+        <button
+          type="button"
+          onClick={prevStep}
+          className="inline-flex items-center px-4 py-2 border border-gray-600 rounded-lg text-sm font-medium text-gray-200 bg-gray-800/50 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200"
+        >
+          <FiArrowLeft className="mr-2 h-4 w-4" />
+          Back
+        </button>
+        
+        <Button
+          type="submit"
+          disabled={isLoading}
+          className="group relative flex justify-center py-3 px-6 border border-transparent rounded-xl shadow-lg text-sm font-medium text-white bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+        >
+          {isLoading ? (
+            <>
+              <svg 
+                className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" 
+                xmlns="http://www.w3.org/2000/svg" 
+                fill="none" 
+                viewBox="0 0 24 24"
+              >
+                <circle 
+                  className="opacity-25" 
+                  cx="12" 
+                  cy="12" 
+                  r="10" 
+                  stroke="currentColor" 
+                  strokeWidth="4"
+                />
+                <path 
+                  className="opacity-75" 
+                  fill="currentColor" 
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+              Creating account...
+            </>
+          ) : (
+            <>
+              <span>Create account</span>
+              <FiArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
+            </>
+          )}
+        </Button>
+      </div>
+    </form>
+  );
+
+  const renderSuccess = () => (
+    <div className="mt-8 text-center">
+      <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg">
+        <svg
+          className="w-10 h-10 text-white"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2.5"
+            d="M5 13l4 4L19 7"
+          />
+        </svg>
+      </div>
+      <h2 className="mt-6 text-2xl font-bold text-white">Account created successfully!</h2>
+      <p className="mt-3 text-gray-300 max-w-md mx-auto">
+        We've sent a verification link to your email. Please verify your email to continue.
+      </p>
+      <div className="mt-8">
+        <Link
+          to="/login"
+          className="group inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-xl shadow-lg text-white bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200"
+        >
+          <span>Go to login</span>
+          <FiArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-200" />
+        </Link>
+      </div>
+      <p className="mt-6 text-sm text-gray-400">
+        Didn't receive an email?{' '}
+        <button 
+          onClick={handleResendVerificationEmail}
+          className="font-medium text-primary-400 hover:text-primary-300 focus:outline-none focus:underline transition-colors duration-200"
+        >
+          Resend verification
+        </button>
+      </p>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100 py-12 px-4 sm:px-6 lg:px-8">
-      {step === 1 ? (
-        <RoleSelection onSelectRole={handleRoleSelect} />
-      ) : (
-        <RegistrationForm 
-          formData={formData}
-          errors={errors}
-          isLoading={isLoading}
-          handleChange={handleChange}
-          handleSubmit={handleSubmit}
-          setStep={setStep}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Background Image with Overlay */}
+      <div className="absolute inset-0 w-full h-full">
+        <img
+          src="/assets/images/hero/diverse-students.jpg"
+          alt="Students learning together"
+          className="w-full h-full object-cover"
+          loading="lazy"
         />
-      )}
+        <div className="absolute inset-0 bg-black/60">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary-900/30 via-primary-800/20 to-transparent"></div>
+        </div>
+      </div>
+
+      <div className="w-full max-w-md relative z-10">
+        <div className="bg-gray-900/70 backdrop-blur-sm border border-gray-700/50 p-8 rounded-2xl shadow-2xl">
+          <div className="text-center">
+            <Link to="/" className="flex justify-center">
+              <img 
+                src="/favicon.svg" 
+                alt="Darsy Logo" 
+                className="h-14 w-auto"
+              />
+            </Link>
+            <h2 className="mt-6 text-3xl font-bold text-white">
+              Create Your Account
+            </h2>
+            <p className="mt-2 text-gray-300">
+              Join us to get started
+            </p>
+            
+            {errors.submit && (
+              <div className="mt-4 p-3 bg-red-900/30 border border-red-700/50 text-red-100 rounded-lg flex items-center space-x-2">
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span>{errors.submit}</span>
+              </div>
+            )}
+          </div>
+          
+          {isSuccess ? renderSuccess() : (step === 1 ? renderStepOne() : renderStepTwo())}
+          
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-400">
+              Already have an account?{' '}
+              <Link to="/login" className="font-medium text-primary-400 hover:text-primary-300 transition-colors duration-200">
+                Sign in
+              </Link>
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

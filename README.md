@@ -1,31 +1,21 @@
 # Darsy - Interactive E-Learning Platform
 
-An advanced e-learning platform with real-time video communication capabilities using WebRTC.
+A modern e-learning platform with real-time video communication powered by Agora.
+
+## Features
+
+- Live video classes with Agora
+- Course management
+- Student progress tracking
+- Interactive learning materials
 
 ## Tech Stack
 
-- **Backend**:
-  - Django (REST Framework)
-  - Django Channels (WebSocket)
-  - Janus Gateway (WebRTC Server)
-  - PostgreSQL
-  - Redis (for WebSocket and caching)
+- **Frontend**: React, Vite, TailwindCSS, Redux Toolkit
+- **Backend**: Django, Django REST Framework, PostgreSQL
+- **Real-time**: Agora WebRTC
 
-- **Frontend**:
-  - React
-  - Vite
-  - WebRTC
-  - TailwindCSS
-  - Redux Toolkit
-
-## Prerequisites
-
-- Python 3.9+
-- Node.js 18+
-- Docker & Docker Compose
-- Janus Gateway
-
-## Development Setup
+## Getting Started
 
 1. Clone the repository
 2. Set up the backend:
@@ -40,15 +30,10 @@ An advanced e-learning platform with real-time video communication capabilities 
    ```bash
    cd frontend
    npm install
+   npm run dev
    ```
 
-4. Set up Janus Gateway:
-   ```bash
-   docker-compose up janus
-   ```
-
-5. Run the development servers:
-   ```bash
+4. Set up environment variables (see `.env.example`)
    # Backend
    python manage.py runserver
 

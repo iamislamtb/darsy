@@ -1,15 +1,30 @@
 import React from 'react';
-import { Route } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
 import DashboardHome from '../pages/dashboard/DashboardHome';
 import ProfilePage from '../pages/dashboard/ProfilePage';
 import MyCourses from '../pages/dashboard/MyCourses';
+import MessagesPage from '../pages/dashboard/MessagesPage';
 import Certificates from '../pages/dashboard/Certificates';
 import Settings from '../pages/dashboard/Settings';
-import EchoTest from '../components/EchoTest';
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import PrivateRoute from '../components/PrivateRoute';
+
+// Teacher pages
+import TeachingPage from '../pages/teacher/TeachingPage';
+import NewCoursePage from '../pages/teacher/NewCoursePage';
+import ManageCoursePage from '../pages/teacher/ManageCoursePage';
+import PrivateRoute from './PrivateRoute';
+
+// Role-based route components
+const TeacherRoute = ({ element }) => (
+  <PrivateRoute roles={['teacher']}>
+    {element}
+  </PrivateRoute>
+);
+
+const StudentRoute = ({ element }) => (
+  <PrivateRoute roles={['student']}>
+    {element}
+  </PrivateRoute>
+);
 
 export const dashboardRoutes = {
   path: '/dashboard',
@@ -32,16 +47,28 @@ export const dashboardRoutes = {
       element: <MyCourses />,
     },
     {
+      path: 'messages',
+      element: <MessagesPage />,
+    },
+    {
       path: 'certificates',
-      element: <Certificates />,
+      element: <StudentRoute element={<Certificates />} />,
+    },
+    {
+      path: 'teaching',
+      element: <TeacherRoute element={<TeachingPage />} />,
+    },
+    {
+      path: 'teaching/new',
+      element: <TeacherRoute element={<NewCoursePage />} />,
+    },
+    {
+      path: 'teaching/:id',
+      element: <TeacherRoute element={<ManageCoursePage />} />
     },
     {
       path: 'settings',
       element: <Settings />,
-    },
-    {
-      path: 'echo-test',
-      element: <EchoTest />,
     },
   ],
 };

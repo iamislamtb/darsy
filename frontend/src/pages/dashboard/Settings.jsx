@@ -1,8 +1,37 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
 
 function Settings() {
+  // State for toggles
+  const [toggles, setToggles] = useState({
+    'email-notifications': true,
+    'two-factor': false
+  });
+
+  // State for selects
+  const [selects, setSelects] = useState({
+    'language': 'English',
+    'difficulty': 'Intermediate',
+    'profile-visibility': 'Public'
+  });
+
+  // Toggle handler
+  const handleToggle = (id) => {
+    setToggles(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
+  // Select handler
+  const handleSelectChange = (id, value) => {
+    setSelects(prev => ({
+      ...prev,
+      [id]: value
+    }));
+  };
+
   const sections = [
     {
       title: 'Account Settings',
@@ -12,14 +41,14 @@ function Settings() {
           title: 'Email Notifications',
           description: 'Receive email notifications about your course progress and updates',
           type: 'toggle',
-          value: true
+          value: toggles['email-notifications']
         },
         {
           id: 'two-factor',
           title: 'Two-Factor Authentication',
           description: 'Add an extra layer of security to your account',
           type: 'toggle',
-          value: false
+          value: toggles['two-factor']
         }
       ]
     },
@@ -31,14 +60,14 @@ function Settings() {
           title: 'Preferred Language',
           type: 'select',
           options: ['English', 'Spanish', 'French'],
-          value: 'English'
+          value: selects['language']
         },
         {
           id: 'difficulty',
           title: 'Content Difficulty',
           type: 'select',
           options: ['Beginner', 'Intermediate', 'Advanced'],
-          value: 'Intermediate'
+          value: selects['difficulty']
         }
       ]
     },
@@ -51,41 +80,43 @@ function Settings() {
           description: 'Control who can see your profile and learning activity',
           type: 'select',
           options: ['Public', 'Private', 'Friends Only'],
-          value: 'Public'
+          value: selects['profile-visibility']
         }
       ]
     }
   ];
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-semibold text-gray-900 mb-6">Settings</h1>
+    <div className="p-4 sm:p-6">
+      <h1 className="text-2xl font-semibold text-white mb-6">Settings</h1>
 
       <div className="space-y-6">
         {sections.map((section) => (
-          <div key={section.title} className="bg-white rounded-lg shadow">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-medium text-gray-900">{section.title}</h2>
+          <div key={section.title} className="bg-gray-800 rounded-lg shadow-lg border border-gray-700">
+            <div className="px-4 sm:px-6 py-4 border-b border-gray-700">
+              <h2 className="text-lg font-medium text-white">{section.title}</h2>
             </div>
-            <div className="p-6 space-y-6">
+            <div className="p-4 sm:p-6 space-y-6">
               {section.settings.map((setting) => (
-                <div key={setting.id} className="flex items-center justify-between">
-                  <div className="flex-1 pr-4">
-                    <h3 className="text-sm font-medium text-gray-900">
+                <div key={setting.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <h3 className="text-sm font-medium text-gray-200">
                       {setting.title}
                     </h3>
                     {setting.description && (
-                      <p className="text-sm text-gray-500">{setting.description}</p>
+                      <p className="text-sm text-gray-400 mt-1">{setting.description}</p>
                     )}
                   </div>
                   
                   {setting.type === 'toggle' && (
                     <button
+                      type="button"
                       className={`
                         relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent 
-                        transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
-                        ${setting.value ? 'bg-primary-500' : 'bg-gray-200'}
+                        transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-gray-800
+                        ${setting.value ? 'bg-primary-500' : 'bg-gray-600'}
                       `}
+                      onClick={() => handleToggle(setting.id)}
                     >
                       <span
                         className={`
@@ -99,11 +130,12 @@ function Settings() {
 
                   {setting.type === 'select' && (
                     <select
-                      className="block w-48 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                      className="block w-full sm:w-48 rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm py-1.5 px-3"
                       value={setting.value}
+                      onChange={(e) => handleSelectChange(setting.id, e.target.value)}
                     >
                       {setting.options.map((option) => (
-                        <option key={option} value={option}>
+                        <option key={option} value={option} className="bg-gray-700">
                           {option}
                         </option>
                       ))}
@@ -116,29 +148,32 @@ function Settings() {
         ))}
 
         {/* Password Change Section */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-medium text-gray-900">Change Password</h2>
+        <div className="bg-gray-800 rounded-lg shadow-lg border border-gray-700">
+          <div className="px-4 sm:px-6 py-4 border-b border-gray-700">
+            <h2 className="text-lg font-medium text-white">Change Password</h2>
           </div>
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             <form className="space-y-4">
               <Input
                 label="Current Password"
                 type="password"
                 name="currentPassword"
+                placeholder="••••••••"
               />
               <Input
                 label="New Password"
                 type="password"
                 name="newPassword"
+                placeholder="••••••••"
               />
               <Input
                 label="Confirm New Password"
                 type="password"
                 name="confirmPassword"
+                placeholder="••••••••"
               />
-              <div className="flex justify-end">
-                <Button type="submit">
+              <div className="flex justify-end pt-2">
+                <Button type="submit" className="w-full sm:w-auto">
                   Update Password
                 </Button>
               </div>
@@ -147,14 +182,27 @@ function Settings() {
         </div>
 
         {/* Danger Zone */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-medium text-red-600">Danger Zone</h2>
+        <div className="bg-gray-800 rounded-lg shadow-lg border border-red-500/30">
+          <div className="px-4 sm:px-6 py-4 border-b border-red-500/30">
+            <h2 className="text-lg font-medium text-red-400">Danger Zone</h2>
           </div>
-          <div className="p-6">
-            <Button variant="outline" className="text-red-600 border-red-600 hover:bg-red-50">
-              Delete Account
-            </Button>
+          <div className="p-4 sm:p-6">
+            <div className="space-y-4">
+              <p className="text-sm text-gray-300">
+                Once you delete your account, there is no going back. Please be certain.
+              </p>
+              <Button 
+                variant="outline" 
+                className="w-full sm:w-auto border-red-500 text-red-400 hover:bg-red-500/10 hover:text-red-300 hover:border-red-400 focus:ring-red-500"
+                onClick={(e) => {
+                  e.preventDefault();
+                  // Add delete account logic here
+                  console.log('Delete account clicked');
+                }}
+              >
+                Delete Account
+              </Button>
+            </div>
           </div>
         </div>
       </div>

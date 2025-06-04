@@ -23,10 +23,7 @@ function ProfilePage() {
   const navigate = useNavigate();
   const { logout } = useAuth();
 
-  const handleLogout = () => {
-    logout(); // This will clear the auth state and storage
-    navigate('/');
-  };
+  // Logout button has been moved to the sidebar
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -58,15 +55,15 @@ function ProfilePage() {
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Profile Settings</h1>
+        <h1 className="text-2xl font-semibold text-white">Profile Settings</h1>
       </div>
 
-      <div className="bg-white rounded-lg shadow">
+      <div className="bg-gray-800 rounded-lg shadow border border-gray-700">
         <div className="p-6">
           {/* Profile Header */}
-          <div className="flex items-center space-x-4 mb-6">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start sm:space-x-6 space-y-4 sm:space-y-0 mb-6">
             <div className="relative">
-              <div className="relative w-32 h-32 rounded-full bg-gray-200 overflow-hidden border-4 border-white shadow-md">
+              <div className="relative w-32 h-32 rounded-full bg-gray-700 overflow-hidden border-4 border-gray-700 shadow-md">
                 {profileData.avatar ? (
                   <img
                     src={profileData.avatar}
@@ -79,14 +76,17 @@ function ProfilePage() {
                     }}
                   />
                 ) : null}
-                <div className={`absolute inset-0 flex items-center justify-center bg-gray-200 ${profileData.avatar ? 'hidden' : 'flex'}`}>
-                  <span className="text-4xl font-medium text-gray-500">
+                <div className={`absolute inset-0 flex items-center justify-center bg-gray-700 ${profileData.avatar ? 'hidden' : 'flex'}`}>
+                  <span className="text-4xl font-medium text-gray-300">
                     {profileData.name ? profileData.name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'}
                   </span>
                 </div>
               </div>
               {isEditing && (
-                <button className="absolute bottom-0 right-0 bg-primary-500 text-white p-2 rounded-full shadow-lg hover:bg-primary-600">
+                <button 
+                  className="absolute bottom-0 right-0 bg-primary-500 text-white p-2 rounded-full shadow-lg hover:bg-primary-600 transition-colors"
+                  type="button"
+                >
                   <svg
                     className="w-4 h-4"
                     fill="none"
@@ -109,9 +109,9 @@ function ProfilePage() {
                 </button>
               )}
             </div>
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">{profileData.name}</h2>
-              <p className="text-gray-600">{profileData.bio}</p>
+            <div className="text-center sm:text-left">
+              <h2 className="text-2xl font-bold text-white">{profileData.name}</h2>
+              <p className="text-gray-300">{profileData.bio}</p>
             </div>
           </div>
 
@@ -172,19 +172,21 @@ function ProfilePage() {
               />
             </div>
 
-            <div className="mt-6 flex justify-end space-x-3">
+            <div className="mt-8 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3">
               {isEditing && (
                 <>
                   <Button 
                     type="button"
                     variant="secondary"
                     onClick={handleEditToggle}
+                    className="w-full sm:w-auto"
                   >
                     Cancel
                   </Button>
                   <Button 
                     type="submit"
                     variant="primary"
+                    className="w-full sm:w-auto"
                   >
                     Save Changes
                   </Button>
@@ -195,22 +197,14 @@ function ProfilePage() {
                   type="button"
                   variant="primary"
                   onClick={handleEditToggle}
+                  className="w-full sm:w-auto"
                 >
                   Edit Profile
                 </Button>
               )}
+
             </div>
           </form>
-
-          {/* Logout Button */}
-          <div className="mt-12 pt-8 border-t border-gray-200">
-            <Button 
-              onClick={handleLogout}
-              className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-md transition-colors text-sm font-medium"
-            >
-              Sign Out
-            </Button>
-          </div>
         </div>
       </div>
     </div>

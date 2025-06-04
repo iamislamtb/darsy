@@ -24,40 +24,69 @@ function Navbar() {
     setIsMenuOpen(false);
   };
 
+  const scrollToSection = (e, sectionId) => {
+    e.preventDefault();
+    const element = document.getElementById(sectionId.replace('#', ''));
+    if (element) {
+      window.scrollTo({
+        top: element.offsetTop - 80, // Adjust for fixed header
+        behavior: 'smooth'
+      });
+    }
+  };
+
   const navLinks = [
     { name: 'Features', href: '#features' },
     { name: 'Pricing', href: '#pricing' },
-    { name: 'Contact', href: '#contact' },
+    { name: 'Contact', href: '/contact' },
   ];
 
   return (
     <header className={`fixed w-full z-50 transition-all duration-300 ${
-      scrolled ? 'bg-white/90 backdrop-blur-md shadow-sm' : 'bg-transparent'
+      scrolled ? 'bg-gray-900/95 backdrop-blur-md border-b border-gray-800' : 'bg-transparent'
     }`}>
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 md:h-20">
+        <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex items-center">
-              <span className={`text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent`}>
-                Darsy
-              </span>
+              <div className="flex items-center">
+                <div className="h-8 w-8 mr-2 flex items-center justify-center">
+                  <img 
+                    src="/favicon.svg" 
+                    alt="Darsy Logo" 
+                    className="h-6 w-6" 
+                  />
+                </div>
+                <span className={`text-xl font-bold bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent`}>
+                  Darsy
+                </span>
+              </div>
             </Link>
-            <div className="hidden md:flex md:ml-12 space-x-8">
+            <div className="hidden md:flex md:ml-10 space-x-6">
               {navLinks.map((item) => (
-                <a
-                  key={item.name}
-                  href={item.href}
-                  className={`text-sm font-medium transition-colors ${
-                    scrolled ? 'text-neutral-700 hover:text-primary-600' : 'text-white/90 hover:text-white'
-                  }`}
-                >
-                  {item.name}
-                </a>
+                item.href.startsWith('#') ? (
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    onClick={(e) => scrollToSection(e, item.href)}
+                    className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+                  >
+                    {item.name}
+                  </a>
+                ) : (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+                  >
+                    {item.name}
+                  </Link>
+                )
               ))}
             </div>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
             {user ? (
               <div className="relative">
                 <button
@@ -88,19 +117,19 @@ function Navbar() {
                 {isMenuOpen && (
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl py-2 ring-1 ring-black/5">
                     <div className="px-4 py-3 border-b border-neutral-100">
-                      <p className="text-sm font-medium text-neutral-900">{user.name}</p>
+                      <p className="text-sm font-sans font-medium text-neutral-900">{user.name}</p>
                       <p className="text-xs text-neutral-500 truncate">{user.email}</p>
                     </div>
                     <Link
                       to="/dashboard"
-                      className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50"
+                      className="block px-4 py-2.5 text-sm font-sans font-medium text-neutral-700 hover:bg-neutral-50"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Dashboard
                     </Link>
                     <Link
                       to="/dashboard/profile"
-                      className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50"
+                      className="block px-4 py-2.5 text-sm font-sans font-medium text-neutral-700 hover:bg-neutral-50"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Profile Settings
@@ -108,7 +137,7 @@ function Navbar() {
                     <div className="border-t border-neutral-100 my-1"></div>
                     <button
                       onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50"
+                      className="block w-full text-left px-4 py-2.5 text-sm font-sans font-medium text-neutral-700 hover:bg-neutral-50"
                     >
                       Sign out
                     </button>
@@ -119,7 +148,7 @@ function Navbar() {
               <div className="flex items-center space-x-3">
                 <Link
                   to="/login"
-                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+                  className={`nav-button px-4 py-2 text-sm font-sans font-medium rounded-lg transition-all ${
                     scrolled 
                       ? 'bg-secondary-600 hover:bg-secondary-700 text-white border-transparent' 
                       : 'bg-secondary-500/90 hover:bg-secondary-600/90 text-white border-transparent backdrop-blur-sm'
@@ -129,7 +158,7 @@ function Navbar() {
                 </Link>
                 <Link
                   to="/register"
-                  className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg hover:opacity-90 transition-opacity shadow-sm shadow-primary-500/20"
+                  className="nav-button px-4 py-2 text-sm font-medium bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg hover:opacity-90 transition-opacity shadow-sm shadow-primary-500/20"
                 >
                   Sign up
                 </Link>
